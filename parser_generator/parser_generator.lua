@@ -45,14 +45,14 @@ end
 
 local MARKER = {}
 
+--- Computes LALR(1) lookaheads using the DeRemer/Pennello method.
+--  Discovers spontaneous lookaheads from FIRST sets of rule tails and the
+--  initial EOF lookahead on the augmented start production, records
+--  propagation relationships between items/states, and then iteratively
+--  propagates lookaheads along those edges until a fixed point is reached.
 function ParserGenerator:computeLookaheads()
     local startProduction = self.grammar.productions[self.grammar.initialRule][1]
     local eofSymbol = self.grammar.eofSymbol
-
-    startProduction.lookaheads[eofSymbol.name] = eofSymbol
-
-    local function firstOfTail( rule, startPosition, lookahead )
-        local terminals = {}
         for position = startPosition, #rule.right do
             local symbol = rule.right[position]
             if symbol.isTerminal then
@@ -134,7 +134,7 @@ function ParserGenerator:computeLookaheads()
     until not changed
 end
 
---- Fills the actions for a given state
+--- Builds states by computing shift/accept actions and recursively creating successor states
 ---@param state State
 function ParserGenerator:buildStates( state )
     ---@type table<Symbol, Production[]>
