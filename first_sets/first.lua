@@ -1,4 +1,4 @@
-local FirstSet = require( "first_and_follow.first_set" )
+local FirstSet = require( "first_sets.first_set" )
 
 --- Initializes the first sets for a given grammar
 ---@param grammar Grammar

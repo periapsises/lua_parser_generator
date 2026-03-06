@@ -2,8 +2,7 @@ local GrammarLexer = require( "grammar_parsing.grammar_lexer" )
 local GrammarParser = require( "grammar_parsing.grammar_parser" )
 local DesugarVisitor = require( "grammar_parsing.desugar.desugar_visitor" )
 local Grammar = require( "grammar.grammar" )
-local computeFirstSets = require( "first_and_follow.first" )
-local computeFollowSets = require( "first_and_follow.follow" )
+local computeFirstSets = require( "first_sets.first" )
 local StateManager = require( "parser_generator.state_manager" )
 
 ---@class ParserGenerator
@@ -11,7 +10,6 @@ local StateManager = require( "parser_generator.state_manager" )
 ---@field outputPath string
 ---@field grammar Grammar
 ---@field firstSets table<Symbol, FirstSet>
----@field followSets table<Symbol, FollowSet>
 ---@field stateManager StateManager
 local ParserGenerator = {}
 ParserGenerator.__index = ParserGenerator
@@ -30,10 +28,7 @@ function ParserGenerator.new( inputFile, outputPath )
     local desugarVisitor = DesugarVisitor.new()
     local lexerRules, parserRules = desugarVisitor:visitGrammar( grammarTree )
     parserGenerator.grammar = Grammar.new( lexerRules, parserRules )
-
     parserGenerator.firstSets = computeFirstSets( parserGenerator.grammar )
-    parserGenerator.followSets = computeFollowSets( parserGenerator.firstSets, parserGenerator.grammar )
-
     parserGenerator.stateManager = StateManager.new( parserGenerator.grammar )
 
     return parserGenerator
