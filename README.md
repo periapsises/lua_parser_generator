@@ -2,6 +2,7 @@
 
 An SLR(1) parser generator written in LuaJIT. It reads a grammar definition file (`.gmr`) and emits a self-contained Lua source file containing a lexer, a shift-reduce parser, and a concrete syntax tree (CST) builder — all driven by the generated parse tables.
 
+> [!Note]
 > **Requires LuaJIT.** The project uses `ffi` and `bit` extensions that are not available in standard Lua 5.x.
 
 ---
@@ -41,7 +42,10 @@ Tokens are declared with an `ALL_CAPS` name, a colon, and a **Lua pattern** stri
 TOKEN_NAME : "lua pattern";
 ```
 
-Tokens are tried in **declaration order**: the first pattern that matches at the current position wins. The pattern is anchored to the current position automatically; do not add a leading `^`.
+Tokens are tried in **declaration order**: the first pattern that matches at the current position wins.
+
+> [!Warning]
+> The pattern is anchored to the current position **automatically**; do not add a leading `^`
 
 ```
 HELLO : "[hH]ello";
@@ -63,14 +67,6 @@ Parser rules use a `lowercase_name`, a colon, a body expression, and a semicolon
 
 ```
 rule_name : body expression;
-```
-
-#### Sequences
-
-Symbols written next to each other must all appear in order:
-
-```
-assignment : IDENTIFIER EQUALS expression;
 ```
 
 #### Alternation `|`
@@ -118,9 +114,6 @@ digit_sequence : DIGIT+;
 Parentheses group sub-expressions so that `?`, `*`, `+`, and `|` can apply to multiple symbols:
 
 ```
--- optional pair
-pair?
-
 -- alternation of two multi-symbol sequences
 (HELLO | GOODBYE) WORLD
 
