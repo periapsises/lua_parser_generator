@@ -1,6 +1,6 @@
 # lua_parser_generator
 
-An SLR(1) parser generator written in LuaJIT. It reads a grammar definition file (`.gmr`) and emits a self-contained Lua source file containing a lexer, a shift-reduce parser, and a concrete syntax tree (CST) builder — all driven by the generated parse tables.
+A LALR(1) parser generator written in LuaJIT. It reads a grammar definition file (`.gmr`) and emits a self-contained Lua source file containing a lexer, a shift-reduce parser, and a concrete syntax tree (CST) builder — all driven by the generated parse tables.
 
 > [!Note]
 > **Requires LuaJIT.** The project uses `ffi` and `bit` extensions that are not available in standard Lua 5.x.

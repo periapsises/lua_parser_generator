@@ -3,6 +3,7 @@ local UUID = require( "util.uuid" )
 ---@class Production
 ---@field rule ParserRule
 ---@field position number
+---@field lookaheads table<string, Symbol>
 ---@field isComplete boolean
 ---@field uuid string
 local Production = {}
@@ -17,6 +18,7 @@ function Production.new( rule, position )
     local production = setmetatable( {}, Production )
     production.rule = rule
     production.position = position
+    production.lookaheads = {}
     production.isComplete = position == #rule.right
     production.uuid = UUID.new()
 
