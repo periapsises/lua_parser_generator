@@ -81,7 +81,13 @@ function ParserGenerator:computeLookaheads()
         for _, production in ipairs( state.initialProductions ) do
             local worklist = { { production = production, lookahead = MARKER } }
 
+            local visited = {}
             for _, item in ipairs( worklist ) do
+                local lookaheadKey = ( item.lookahead == MARKER ) and "MARKER" or item.lookahead.name
+                local key = item.production.uuid .. "\0" .. lookaheadKey
+                if visited[key] then goto continue end
+                visited[key] = true
+
                 local nextSymbol = item.production:getNextSymbol()
                 if nextSymbol then
                     local advancedProduction = self.grammar.productions[item.production.rule][item.production.position + 2]
@@ -108,6 +114,8 @@ function ParserGenerator:computeLookaheads()
                         item.production.lookaheads[item.lookahead.name] = item.lookahead
                     end
                 end
+
+                ::continue::
             end
         end
     end
