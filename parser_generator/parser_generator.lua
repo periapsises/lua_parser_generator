@@ -46,6 +46,85 @@ function ParserGenerator:generate()
     self:fillStateActions( startState )
 end
 
+local MARKER = {}
+
+function ParserGenerator:computeLookaheads()
+    local startProduction = self.grammar.productions[self.grammar.initialRule][1]
+    local eofSymbol = self.grammar.eofSymbol
+
+    startProduction.lookaheads[eofSymbol.name] = eofSymbol
+
+    local function firstOfTail( rule, startPosition, lookahead )
+        local terminals = {}
+        for position = startPosition, #rule.right do
+            local symbol = rule.right[position]
+            if symbol.isTerminal then
+                table.insert( terminals, symbol )
+                return terminals
+            else
+                for _, firstSymbol in ipairs( self.firstSets[symbol].list ) do
+                    if firstSymbol ~= MARKER then
+                        table.insert( terminals, firstSymbol )
+                    end
+                end
+
+                if not self.firstSets[symbol].canBeEmpty then
+                    return terminals
+                end
+            end
+        end
+
+        table.insert( terminals, lookahead )
+        return terminals
+    end
+
+    local propagationEdges = {}
+
+    for _, state in ipairs( self.stateManager.states ) do
+        for _, production in ipairs( state.initialProductions ) do
+            local worklist = { { production = production, lookahead = MARKER } }
+
+            for _, item in ipairs( worklist ) do
+                local nextSymbol = item.production:getNextSymbol()
+                if nextSymbol then
+                    local advancedProduction = self.grammar.productions[item.production.rule][item.production.position + 2]
+
+                    for _, terminal in ipairs( firstOfTail( item.production.rule, item.production.position + 2, item.lookahead ) ) do
+                        if terminal == MARKER then
+                            table.insert( propagationEdges, { from = production, to = advancedProduction } )
+                        else
+                            advancedProduction.lookaheads[terminal.name] = terminal
+                        end
+                    end
+
+                    if not nextSymbol.isTerminal then
+                        local rules = self.grammar.rulesOfSymbol[nextSymbol]
+                        for _, rule in ipairs( rules ) do
+                            local newProduction = self.grammar.productions[rule][1]
+                            for _, terminal in ipairs( firstOfTail( item.production.rule, item.production.position + 2, item.lookahead ) ) do
+                                table.insert( worklist, { production = newProduction, lookahead = terminal } )
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    repeat
+        local changed = false
+
+        for _, edge in ipairs( propagationEdges ) do
+            for name, symbol in pairs( edge.from.lookaheads ) do
+                if not edge.to.lookaheads[name] then
+                    edge.to.lookaheads[name] = symbol
+                    changed = true
+                end
+            end
+        end
+    until not changed
+end
+
 --- Fills the actions for a given state
 ---@param state State
 function ParserGenerator:fillStateActions( state )
