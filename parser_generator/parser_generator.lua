@@ -43,7 +43,9 @@ function ParserGenerator:generate()
     local startProduction = self.grammar.productions[self.grammar.initialRule][1]
     local startState = self.stateManager:getStateForProductions( { startProduction } )
 
-    self:fillStateActions( startState )
+    self:buildStates( startState )
+    self:computeLookaheads()
+    self:addReduceActions()
 end
 
 local MARKER = {}
@@ -89,12 +91,10 @@ function ParserGenerator:computeLookaheads()
                 if nextSymbol then
                     local advancedProduction = self.grammar.productions[item.production.rule][item.production.position + 2]
 
-                    for _, terminal in ipairs( firstOfTail( item.production.rule, item.production.position + 2, item.lookahead ) ) do
-                        if terminal == MARKER then
-                            table.insert( propagationEdges, { from = production, to = advancedProduction } )
-                        else
-                            advancedProduction.lookaheads[terminal.name] = terminal
-                        end
+                    if item.lookahead == MARKER then
+                        table.insert( propagationEdges, { from = production, to = advancedProduction } )
+                    else
+                        advancedProduction.lookaheads[item.lookahead.name] = item.lookahead
                     end
 
                     if not nextSymbol.isTerminal then
@@ -105,6 +105,12 @@ function ParserGenerator:computeLookaheads()
                                 table.insert( worklist, { production = newProduction, lookahead = terminal } )
                             end
                         end
+                    end
+                else
+                    if item.lookahead == MARKER then
+                        table.insert( propagationEdges, { from = production, to = item.production } )
+                    else
+                        item.production.lookaheads[item.lookahead.name] = item.lookahead
                     end
                 end
             end
@@ -127,17 +133,12 @@ end
 
 --- Fills the actions for a given state
 ---@param state State
-function ParserGenerator:fillStateActions( state )
+function ParserGenerator:buildStates( state )
     ---@type table<Symbol, Production[]>
     local possibleShifts = {}
 
     for _, production in ipairs( state.productions ) do
-        if production.isComplete then
-            -- Don't add reduce actions for the initial rule (S') - acceptance is handled separately
-            if production.rule.left ~= self.grammar.initialRule.left then
-                self:addReduceAction( state, production )
-            end
-        else
+        if not production.isComplete then
             local nextSymbol = production:getNextSymbol()
             if not nextSymbol then
                 error( "A production is not complete but has no next symbol" )
@@ -162,7 +163,17 @@ function ParserGenerator:fillStateActions( state )
         state:addShiftAction( nextSymbol, nextState )
 
         if isNewState then
-            self:fillStateActions( nextState )
+            self:buildStates( nextState )
+        end
+    end
+end
+
+function ParserGenerator:addReduceActions()
+    for _, state in ipairs( self.stateManager.states ) do
+        for _, production in ipairs( state.productions ) do
+            if production.isComplete then
+                self:addReduceAction( state, production )
+            end
         end
     end
 end
@@ -171,13 +182,8 @@ end
 ---@param state State
 ---@param production Production
 function ParserGenerator:addReduceAction( state, production )
-    local followSet = self.followSets[production.rule.left]
-    if not followSet then
-        error( "Follow set not found for symbol: " .. production.rule.left.name )
-    end
-    local followers = followSet.list
-    for _, follower in ipairs( followers ) do
-        state:addReduceAction( follower, production )
+    for _, symbol in pairs( production.lookaheads ) do
+        state:addReduceAction( symbol, production )
     end
 end
 
