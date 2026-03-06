@@ -53,6 +53,11 @@ local MARKER = {}
 function ParserGenerator:computeLookaheads()
     local startProduction = self.grammar.productions[self.grammar.initialRule][1]
     local eofSymbol = self.grammar.eofSymbol
+
+    startProduction.lookaheads[eofSymbol.name] = eofSymbol
+
+    local function firstOfTail( rule, startPosition, lookahead )
+        local terminals = {}
         for position = startPosition, #rule.right do
             local symbol = rule.right[position]
             if symbol.isTerminal then
