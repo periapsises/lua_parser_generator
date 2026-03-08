@@ -17,7 +17,7 @@ a: X Y Z;
 ```
 
 The processed tree would look like the following:
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -34,7 +34,7 @@ a: X Y Y Z;
 ```
 
 In this case, the tokens appearing more than once become an array.
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -53,7 +53,7 @@ Optional tokens falls under the same rules except it requires to specify if it i
 a: X Y? Z;
 ```
 
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -71,7 +71,7 @@ For instance if there are three of the same token in a rule, and the second one 
 a: X Y Y? Z Y;
 ```
 
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -92,7 +92,7 @@ a: X Y+ Z;
 ```
 
 Whether it's a minimum of zero or one times doesn't need to be handled differently as the difference will be the length of the array.
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -111,7 +111,7 @@ When a repeating token becomes part of a group of already repeated tokens howeve
 a: X Y Z Y*;
 ```
 
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -135,7 +135,7 @@ a: X Y | X Z;
 ```
 
 With the input `XY`:
-```
+```lua
 {
     type = "rule",
     alt = 1,
@@ -164,7 +164,7 @@ a: X (Y | Z);
 ```
 
 In this example, the group `(Y | Z)` is assigned to index `[1]`.
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
@@ -185,7 +185,7 @@ a: X b W;
 b: Y | Z;
 ```
 
-```
+```lua
 {
     type = "rule",
     X = { type = "token", value = "X" },
