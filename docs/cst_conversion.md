@@ -48,7 +48,7 @@ In this case, the tokens appearing more than once become an array.
 
 ---
 
-Optional tokens falls under the same rules except it requires to specify if it is empty.
+Optional tokens fall under the same rules except they require to specify if they are empty.
 ```
 a: X Y? Z;
 ```
@@ -106,7 +106,7 @@ Whether it's a minimum of zero or one times doesn't need to be handled different
 
 ---
 
-When a repeating token becomes part of a group of already repeated tokens however, the generated array will live at the index the token appeared at in the rule.
+When a repeating token becomes part of a group of already repeated tokens, the generated array will live at the index the token appeared at in the rule.
 ```
 a: X Y Z Y*;
 ```
@@ -127,9 +127,8 @@ a: X Y Z Y*;
 
 ---
 
-Complications arise when it comes to alternations because there a multiple ways it could be handled.  
-What I think makes the most sense is to generate the resulting node with the same rules above for the specific alternative that applied.  
-An extra `alt` value is stored in the node to specify which alternative was chosen (1-indexed).
+Complications arise when it comes to alternations because there are multiple ways to handle them.  
+One of these is to generate the resulting node with the same rules above for the specific alternative that applied but extra `alt` value to the node that specified which alternative was chosen (1-indexed).
 ```
 a: X Y | X Z;
 ```
@@ -145,7 +144,7 @@ With the input `XY`:
 ```
 
 And with `XZ`:
-```
+```lua
 {
     type = "rule",
     alt = 2,
@@ -156,8 +155,8 @@ And with `XZ`:
 
 ### Grouping
 
-With groups, the same rules above apply but on the whole group as one.  
-For this reason, any group present in a rule will be stored using a numerical index (1-indexed).
+With groups, the same rules above apply but on the whole group.  
+Therefore, any group present in a rule will be stored using a numerical index (1-indexed).
 
 ```
 a: X (Y | Z);
